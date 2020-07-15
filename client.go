@@ -10,9 +10,9 @@ import (
 
 // Supported input types
 const (
-	TEXT_NUMERIC = "TEXT_NUMERIC"
+	TEXT_NUMERIC      = "TEXT_NUMERIC"
 	TEXT_ALPHANUMERIC = "TEXT_ALPHANUMERIC"
-	AUDIO = "AUDIO"
+	AUDIO             = "AUDIO"
 )
 
 // The identifiers of the content list for getContentList operation
@@ -29,112 +29,112 @@ const (
 	Back    = "back"
 )
 
-type GetServiceAnnouncements struct {
+type getServiceAnnouncements struct {
 	XMLName xml.Name `xml:"getServiceAnnouncements"`
 }
 
-type GetServiceAnnouncementsResponse struct {
+type getServiceAnnouncementsResponse struct {
 	XMLName       xml.Name      `xml:"getServiceAnnouncementsResponse"`
 	Announcements Announcements `xml:"announcements"`
 }
 
-type GetQuestions struct {
+type getQuestions struct {
 	XMLName       xml.Name       `xml:"getQuestions"`
 	UserResponses *UserResponses `xml:"userResponses"`
 }
 
-type GetQuestionsResponse struct {
+type getQuestionsResponse struct {
 	XMLName   xml.Name  `xml:"getQuestionsResponse"`
 	Questions Questions `xml:"questions"`
 }
 
-type ReturnContent struct {
+type returnContent struct {
 	XMLName   xml.Name `xml:"returnContent"`
 	ContentID string   `xml:"contentID"`
 }
 
-type ReturnContentResponse struct {
+type returnContentResponse struct {
 	XMLName             xml.Name `xml:"returnContentResponse"`
 	ReturnContentResult bool     `xml:"returnContentResult"`
 }
 
-type IssueContent struct {
+type issueContent struct {
 	XMLName   xml.Name `xml:"issueContent"`
 	ContentID string   `xml:"contentID"`
 }
 
-type IssueContentResponse struct {
+type issueContentResponse struct {
 	XMLName            xml.Name `xml:"issueContentResponse"`
 	IssueContentResult bool     `xml:"issueContentResult"`
 }
 
-type GetContentResources struct {
+type getContentResources struct {
 	XMLName   xml.Name `xml:"getContentResources"`
 	ContentID string   `xml:"contentID"`
 }
 
-type GetContentResourcesResponse struct {
+type getContentResourcesResponse struct {
 	XMLName   xml.Name  `xml:"getContentResourcesResponse"`
 	Resources Resources `xml:"resources"`
 }
 
-type GetContentMetadata struct {
+type getContentMetadata struct {
 	XMLName   xml.Name `xml:"getContentMetadata"`
 	ContentID string   `xml:"contentID"`
 }
 
-type GetContentMetadataResponse struct {
+type getContentMetadataResponse struct {
 	XMLName         xml.Name        `xml:"getContentMetadataResponse"`
 	ContentMetadata ContentMetadata `xml:"contentMetadata"`
 }
 
-type GetContentList struct {
+type getContentList struct {
 	XMLName   xml.Name `xml:"getContentList"`
 	ID        string   `xml:"id"`
 	FirstItem int      `xml:"firstItem"`
 	LastItem  int      `xml:"lastItem"`
 }
 
-type GetContentListResponse struct {
+type getContentListResponse struct {
 	XMLName     xml.Name    `xml:"getContentListResponse"`
 	ContentList ContentList `xml:"contentList"`
 }
 
-type LogOn struct {
+type logOn struct {
 	XMLName  xml.Name `xml:"logOn"`
 	Username string   `xml:"username"`
 	Password string   `xml:"password"`
 }
 
-type LogOnResponse struct {
+type logOnResponse struct {
 	XMLName     xml.Name `xml:"logOnResponse"`
 	LogOnResult bool     `xml:"logOnResult"`
 }
 
-type GetServiceAttributes struct {
+type getServiceAttributes struct {
 	XMLName xml.Name `xml:"getServiceAttributes"`
 }
 
-type GetServiceAttributesResponse struct {
+type getServiceAttributesResponse struct {
 	XMLName           xml.Name          `xml:"getServiceAttributesResponse"`
 	ServiceAttributes ServiceAttributes `xml:"serviceAttributes"`
 }
 
-type SetReadingSystemAttributes struct {
+type setReadingSystemAttributes struct {
 	XMLName                 xml.Name                 `xml:"setReadingSystemAttributes"`
 	ReadingSystemAttributes *ReadingSystemAttributes `xml:"readingSystemAttributes"`
 }
 
-type SetReadingSystemAttributesResponse struct {
+type setReadingSystemAttributesResponse struct {
 	XMLName                          xml.Name `xml:"setReadingSystemAttributesResponse"`
 	SetReadingSystemAttributesResult bool     `xml:"setReadingSystemAttributesResult"`
 }
 
-type LogOff struct {
+type logOff struct {
 	XMLName xml.Name `xml:"logOff"`
 }
 
-type LogOffResponse struct {
+type logOffResponse struct {
 	XMLName      xml.Name `xml:"logOffResponse"`
 	LogOffResult bool     `xml:"logOffResult"`
 }
@@ -241,12 +241,12 @@ func (c *Client) call(method string, args, rs interface{}) error {
 
 // Logs a Reading System on to a Service.
 func (c *Client) LogOn(username, password string) (bool, error) {
-	req := LogOn{
+	req := logOn{
 		Username: username,
 		Password: password,
 	}
 
-	resp := LogOnResponse{}
+	resp := logOnResponse{}
 	if err := c.call("logOn", req, &resp); err != nil {
 		return false, err
 	}
@@ -256,8 +256,8 @@ func (c *Client) LogOn(username, password string) (bool, error) {
 // Logs a Reading System off a Service.
 // A return value of false or a Fault both indicate that the operation was not successful.
 func (c *Client) LogOff() (bool, error) {
-	req := LogOff{}
-	resp := LogOffResponse{}
+	req := logOff{}
+	resp := logOffResponse{}
 	if err := c.call("logOff", req, &resp); err != nil {
 		return false, err
 	}
@@ -267,8 +267,8 @@ func (c *Client) LogOff() (bool, error) {
 // Retrieves Service properties, including information on which optional Operations the Service supports.
 // A Reading System must call this operation as part of the Session Initialization Sequence and may call the operation to retrieve information on possible changes to Service properties at any other time during a Session.
 func (c *Client) GetServiceAttributes() (*ServiceAttributes, error) {
-	req := GetServiceAttributes{}
-	resp := GetServiceAttributesResponse{}
+	req := getServiceAttributes{}
+	resp := getServiceAttributesResponse{}
 	if err := c.call("getServiceAttributes", req, &resp); err != nil {
 		return nil, err
 	}
@@ -278,8 +278,8 @@ func (c *Client) GetServiceAttributes() (*ServiceAttributes, error) {
 // Sends Reading System properties to a Service.
 // A Reading System must call this operation as part of the Session Initialization Sequence. The operation may be called additional times during a Session to record dynamic changes in a Reading System’s properties.
 func (c *Client) SetReadingSystemAttributes(readingSystemAttributes *ReadingSystemAttributes) (bool, error) {
-	req := SetReadingSystemAttributes{ReadingSystemAttributes: readingSystemAttributes}
-	resp := SetReadingSystemAttributesResponse{}
+	req := setReadingSystemAttributes{ReadingSystemAttributes: readingSystemAttributes}
+	resp := setReadingSystemAttributesResponse{}
 	if err := c.call("setReadingSystemAttributes", req, &resp); err != nil {
 		return false, err
 	}
@@ -290,13 +290,13 @@ func (c *Client) SetReadingSystemAttributes(readingSystemAttributes *ReadingSyst
 // The list returned by the Service can be pre-composed, in which case it is retrieved by passing one of the three reserved values defined in the id parameter below. (Refer to 4, Protocol Fundamentals for information on the contexts in which these reserved values are used.)
 // The list can also be dynamic (e.g., the result of a dynamic menu search operation sequence). In this case, the id value used to refer to the list is provided in the return value of a previous call to getQuestions. (Refer to the questions type for more information.)
 func (c *Client) GetContentList(id string, firstItem int, lastItem int) (*ContentList, error) {
-	req := GetContentList{
+	req := getContentList{
 		ID:        id,
 		FirstItem: firstItem,
 		LastItem:  lastItem,
 	}
 
-	resp := GetContentListResponse{}
+	resp := getContentListResponse{}
 	if err := c.call("getContentList", req, &resp); err != nil {
 		return nil, err
 	}
@@ -306,8 +306,8 @@ func (c *Client) GetContentList(id string, firstItem int, lastItem int) (*Conten
 // Retrieves the contentMetadata of the specified Content item.
 // This operation must be called as part of the Content Retrieval Sequence.
 func (c *Client) GetContentMetadata(contentID string) (*ContentMetadata, error) {
-	req := GetContentMetadata{ContentID: contentID}
-	resp := GetContentMetadataResponse{}
+	req := getContentMetadata{ContentID: contentID}
+	resp := getContentMetadataResponse{}
 	if err := c.call("getContentMetadata", req, &resp); err != nil {
 		return nil, err
 	}
@@ -317,8 +317,8 @@ func (c *Client) GetContentMetadata(contentID string) (*ContentMetadata, error) 
 // Retrieves the resources list for the specified Content item.
 // The Content item must be issued before this operation is called. If not, the Service shall respond with an invalidParameter Fault.
 func (c *Client) GetContentResources(contentID string) (*Resources, error) {
-	req := GetContentResources{ContentID: contentID}
-	resp := GetContentResourcesResponse{}
+	req := getContentResources{ContentID: contentID}
+	resp := getContentResourcesResponse{}
 	if err := c.call("getContentResources", req, &resp); err != nil {
 		return nil, err
 	}
@@ -327,8 +327,8 @@ func (c *Client) GetContentResources(contentID string) (*Resources, error) {
 
 // Requests a Service to issue the specified Content item.
 func (c *Client) IssueContent(contentID string) (bool, error) {
-	req := IssueContent{ContentID: contentID}
-	resp := IssueContentResponse{}
+	req := issueContent{ContentID: contentID}
+	resp := issueContentResponse{}
 	if err := c.call("issueContent", req, &resp); err != nil {
 		return false, err
 	}
@@ -340,8 +340,8 @@ func (c *Client) IssueContent(contentID string) (bool, error) {
 // A Reading System must not call this function for a Content item that has a requiresReturn attribute with a value of false.
 // A Reading System must delete the Content item before calling returnContent. A Reading System must not call returnContent for a Content item that was not issued to the User on that Reading System.
 func (c *Client) ReturnContent(contentID string) (bool, error) {
-	req := ReturnContent{ContentID: contentID}
-	resp := ReturnContentResponse{}
+	req := returnContent{ContentID: contentID}
+	resp := returnContentResponse{}
 	if err := c.call("returnContent", req, &resp); err != nil {
 		return false, err
 	}
@@ -350,8 +350,8 @@ func (c *Client) ReturnContent(contentID string) (bool, error) {
 
 // Retrieves a question from the series of questions that comprise the dynamic menu system.
 func (c *Client) GetQuestions(userResponses *UserResponses) (*Questions, error) {
-	req := GetQuestions{UserResponses: userResponses}
-	resp := GetQuestionsResponse{}
+	req := getQuestions{UserResponses: userResponses}
+	resp := getQuestionsResponse{}
 	if err := c.call("getQuestions", req, &resp); err != nil {
 		return nil, err
 	}
@@ -360,8 +360,8 @@ func (c *Client) GetQuestions(userResponses *UserResponses) (*Questions, error) 
 
 // Retrieves any announcements from the Service that a User has not yet read.
 func (c *Client) GetServiceAnnouncements() (*Announcements, error) {
-	req := GetServiceAnnouncements{}
-	resp := GetServiceAnnouncementsResponse{}
+	req := getServiceAnnouncements{}
+	resp := getServiceAnnouncementsResponse{}
 	if err := c.call("getServiceAnnouncements", req, &resp); err != nil {
 		return nil, err
 	}
