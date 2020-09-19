@@ -199,7 +199,7 @@ func (c *Client) call(method string, args, rs interface{}) error {
 	env := envelope{
 		NS: "http://schemas.xmlsoap.org/soap/envelope/",
 		Body: envelopeBody{
-			XMLName: xml.Name{"http://www.daisy.org/ns/daisy-online/", "SOAP-ENV:Body"},
+			XMLName: xml.Name{Space: "http://www.daisy.org/ns/daisy-online/", Local: "SOAP-ENV:Body"},
 			Content: args,
 		}}
 
