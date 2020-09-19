@@ -65,7 +65,7 @@ type Audio struct {
 	URI        string   `xml:"uri,attr"`
 	RangeBegin int      `xml:"rangeBegin,attr"`
 	RangeEnd   int      `xml:"rangeEnd,attr"`
-	Size       int      `xml:"size,attr"`
+	Size       int64    `xml:"size,attr"`
 }
 
 // Specifies Reading System properties.
@@ -164,7 +164,7 @@ type Metadata struct {
 	Coverage    []string `xml:"coverage"`
 	Contributor []string `xml:"contributor"`
 	Narrator    []string `xml:"narrator"`
-	Size        uint64   `xml:"size"`
+	Size        int64    `xml:"size"`
 	Meta        []Meta   `xml:"meta"`
 }
 
@@ -192,7 +192,7 @@ type Resource struct {
 	XMLName          xml.Name `xml:"resource"`
 	URI              string   `xml:"uri,attr"`
 	MimeType         string   `xml:"mimeType,attr"`
-	Size             uint64   `xml:"size,attr"`
+	Size             int64    `xml:"size,attr"`
 	LocalURI         string   `xml:"localURI,attr"`
 	LastModifiedDate string   `xml:"lastModifiedDate,attr"`
 }
