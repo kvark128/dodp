@@ -183,26 +183,6 @@ func NewClient(url string) *Client {
 	}
 }
 
-// Performs the session initialization sequence
-func Authentication(client *Client, readingSystemAttributes *ReadingSystemAttributes, username, password string) (*ServiceAttributes, error) {
-	_, err := client.LogOn(username, password)
-	if err != nil {
-		return nil, err
-	}
-
-	serviceAttributes, err := client.GetServiceAttributes()
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = client.SetReadingSystemAttributes(readingSystemAttributes)
-	if err != nil {
-		return nil, err
-	}
-
-	return serviceAttributes, nil
-}
-
 func (c *Client) call(method string, args, rs interface{}) error {
 	env := envelope{
 		NS: "http://schemas.xmlsoap.org/soap/envelope/",
