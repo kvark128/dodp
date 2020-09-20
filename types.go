@@ -206,8 +206,8 @@ type UserResponses struct {
 type UserResponse struct {
 	XMLName    xml.Name `xml:"userResponse"`
 	QuestionID string   `xml:"questionID,attr"`
-	Value      string   `xml:"value,attr"`
-	Data       string   `xml:"data"`
+	Value      string   `xml:"value,attr,omitempty"`
+	Data       string   `xml:"data,omitempty"`
 }
 
 type Questions struct {
