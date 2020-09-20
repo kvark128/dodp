@@ -3,7 +3,6 @@ package daisyonline
 import (
 	"bytes"
 	"encoding/xml"
-	"errors"
 	"net/http"
 	"net/http/cookiejar"
 )
@@ -158,6 +157,15 @@ type envelopeBody struct {
 	Content interface{}
 }
 
+type Fault struct {
+	XMLName     xml.Name `xml:"Fault"`
+	Faultstring string   `xml:"faultstring"`
+}
+
+func (f *Fault) Error() string {
+	return f.Faultstring
+}
+
 type Client struct {
 	url        string
 	httpClient http.Client
@@ -225,10 +233,6 @@ func (c *Client) call(method string, args, rs interface{}) error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return errors.New(resp.Status)
-	}
-
 	d := xml.NewDecoder(resp.Body)
 	envresp := envelopeResponse{}
 
@@ -236,7 +240,16 @@ func (c *Client) call(method string, args, rs interface{}) error {
 		return err
 	}
 
-	return xml.Unmarshal(envresp.Body.Content, rs)
+	if resp.StatusCode == http.StatusOK {
+		return xml.Unmarshal(envresp.Body.Content, rs)
+	}
+
+	fault := new(Fault)
+	if err := xml.Unmarshal(envresp.Body.Content, fault); err != nil {
+		return err
+	}
+
+	return fault
 }
 
 // Logs a Reading System on to a Service.
