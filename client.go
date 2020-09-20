@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"net/http"
 	"net/http/cookiejar"
+	"time"
 )
 
 // Supported input types
@@ -171,15 +172,18 @@ type Client struct {
 	httpClient http.Client
 }
 
-func NewClient(url string) *Client {
+func NewClient(url string, timeout time.Duration) *Client {
 	jar, err := cookiejar.New(nil)
 	if err != nil {
 		panic("Invalid cookie jar")
 	}
 
 	return &Client{
-		url:        url,
-		httpClient: http.Client{Jar: jar},
+		url: url,
+		httpClient: http.Client{
+			Jar:     jar,
+			Timeout: timeout,
+		},
 	}
 }
 
