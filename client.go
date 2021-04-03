@@ -195,18 +195,16 @@ func (c *Client) call(method string, args, rs interface{}) error {
 			Content: args,
 		}}
 
-	XMLDoc, err := xml.Marshal(env)
-	if err != nil {
+	buf := bytes.NewBuffer([]byte("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"))
+	if err := xml.NewEncoder(buf).Encode(env); err != nil {
 		panic(err)
 	}
-	XMLDoc = append([]byte("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"), XMLDoc...)
 
-	req, err := http.NewRequest(http.MethodPost, c.url, bytes.NewReader(XMLDoc))
+	req, err := http.NewRequest(http.MethodPost, c.url, buf)
 	if err != nil {
 		return err
 	}
 
-	req.ContentLength = int64(len(XMLDoc))
 	req.Header.Add("Content-Type", "text/xml; charset=utf-8")
 	req.Header.Add("Accept", "text/xml")
 	req.Header.Add("SOAPAction", "/"+method)
@@ -217,10 +215,8 @@ func (c *Client) call(method string, args, rs interface{}) error {
 	}
 	defer resp.Body.Close()
 
-	d := xml.NewDecoder(resp.Body)
-	envresp := envelopeResponse{}
-
-	if err := d.Decode(&envresp); err != nil {
+	envresp := new(envelopeResponse)
+	if err := xml.NewDecoder(resp.Body).Decode(envresp); err != nil {
 		return err
 	}
 
