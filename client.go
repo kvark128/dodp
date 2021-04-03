@@ -195,9 +195,9 @@ func (c *Client) call(method string, args, rs interface{}) error {
 			Content: args,
 		}}
 
-	buf := bytes.NewBuffer([]byte("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"))
+	buf := bytes.NewBufferString(xml.Header)
 	if err := xml.NewEncoder(buf).Encode(env); err != nil {
-		panic(err)
+		return err
 	}
 
 	req, err := http.NewRequest(http.MethodPost, c.url, buf)
