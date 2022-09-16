@@ -1,4 +1,4 @@
-package daisyonline
+package dodp
 
 import (
 	"bytes"
