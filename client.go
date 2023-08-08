@@ -150,11 +150,12 @@ type envelopeResponse struct {
 type envelope struct {
 	XMLName xml.Name `xml:"SOAP-ENV:Envelope"`
 	NS      string   `xml:"xmlns:SOAP-ENV,attr"`
-	Body    envelopeBody
+	Body    body
 }
 
-type envelopeBody struct {
-	XMLName xml.Name
+type body struct {
+	XMLName xml.Name `xml:"SOAP-ENV:Body"`
+	NS      string   `xml:"xmlns,attr"`
 	Content interface{}
 }
 
@@ -190,10 +191,11 @@ func NewClient(url string, timeout time.Duration) *Client {
 func (c *Client) call(method string, args, rs interface{}) error {
 	env := envelope{
 		NS: "http://schemas.xmlsoap.org/soap/envelope/",
-		Body: envelopeBody{
-			XMLName: xml.Name{Space: "http://www.daisy.org/ns/daisy-online/", Local: "SOAP-ENV:Body"},
+		Body: body{
+			NS:      "http://www.daisy.org/ns/daisy-online/",
 			Content: args,
-		}}
+		},
+	}
 
 	buf := bytes.NewBufferString(xml.Header)
 	if err := xml.NewEncoder(buf).Encode(env); err != nil {
@@ -215,21 +217,19 @@ func (c *Client) call(method string, args, rs interface{}) error {
 	}
 	defer resp.Body.Close()
 
-	envresp := new(envelopeResponse)
-	if err := xml.NewDecoder(resp.Body).Decode(envresp); err != nil {
+	var envresp envelopeResponse
+	if err := xml.NewDecoder(resp.Body).Decode(&envresp); err != nil {
 		return err
 	}
 
-	if resp.StatusCode == http.StatusOK {
-		return xml.Unmarshal(envresp.Body.Content, rs)
+	if resp.StatusCode != http.StatusOK {
+		fault := &Fault{}
+		if err := xml.Unmarshal(envresp.Body.Content, fault); err != nil {
+			return err
+		}
+		return fault
 	}
-
-	fault := new(Fault)
-	if err := xml.Unmarshal(envresp.Body.Content, fault); err != nil {
-		return err
-	}
-
-	return fault
+	return xml.Unmarshal(envresp.Body.Content, rs)
 }
 
 // Logs a Reading System on to a Service.
