@@ -170,9 +170,10 @@ func (f *Fault) Error() string {
 	return f.Faultstring
 }
 
+// DAISY Online client
 type Client struct {
 	url        string
-	httpClient http.Client
+	httpClient *http.Client
 }
 
 // Creates an instance of a new DAISY Online client with the specified service URL.
@@ -186,7 +187,7 @@ func NewClient(url string, timeout time.Duration) *Client {
 
 	return &Client{
 		url: url,
-		httpClient: http.Client{
+		httpClient: &http.Client{
 			Jar:     jar,
 			Timeout: timeout,
 		},
@@ -270,6 +271,7 @@ func (c *Client) LogOff() (bool, error) {
 	if err := c.call("logOff", req, &resp); err != nil {
 		return false, err
 	}
+	c.httpClient.CloseIdleConnections()
 	return resp.LogOffResult, nil
 }
 
