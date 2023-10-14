@@ -2,7 +2,9 @@ package dodp
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/xml"
+	"io"
 	"net/http"
 	"net/http/cookiejar"
 	"time"
@@ -173,6 +175,9 @@ type Client struct {
 	httpClient http.Client
 }
 
+// Creates an instance of a new DAISY Online client with the specified service URL.
+// Timeout limits the execution time of each HTTP request for this client.
+// Zero timeout means no timeout.
 func NewClient(url string, timeout time.Duration) *Client {
 	jar, err := cookiejar.New(nil)
 	if err != nil {
@@ -209,6 +214,7 @@ func (c *Client) call(method string, args, rs interface{}) error {
 
 	req.Header.Add("Content-Type", "text/xml; charset=utf-8")
 	req.Header.Add("Accept", "text/xml")
+	req.Header.Add("Accept-Encoding", "gzip")
 	req.Header.Add("SOAPAction", "/"+method)
 
 	resp, err := c.httpClient.Do(req)
@@ -217,8 +223,18 @@ func (c *Client) call(method string, args, rs interface{}) error {
 	}
 	defer resp.Body.Close()
 
+	var reader io.Reader = resp.Body
+	if resp.Header.Get("Content-Encoding") == "gzip" {
+		gzipReader, err := gzip.NewReader(resp.Body)
+		if err != nil {
+			return err
+		}
+		reader = gzipReader
+		defer gzipReader.Close()
+	}
+
 	var envresp envelopeResponse
-	if err := xml.NewDecoder(resp.Body).Decode(&envresp); err != nil {
+	if err := xml.NewDecoder(reader).Decode(&envresp); err != nil {
 		return err
 	}
 
