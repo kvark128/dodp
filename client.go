@@ -158,7 +158,7 @@ type envelope struct {
 type body struct {
 	XMLName xml.Name `xml:"SOAP-ENV:Body"`
 	NS      string   `xml:"xmlns,attr"`
-	Content interface{}
+	Content any
 }
 
 type Fault struct {
@@ -194,7 +194,7 @@ func NewClient(url string, timeout time.Duration) *Client {
 	}
 }
 
-func (c *Client) call(method string, args, rs interface{}) error {
+func (c *Client) call(method string, args any, rs any) error {
 	env := envelope{
 		NS: "http://schemas.xmlsoap.org/soap/envelope/",
 		Body: body{
