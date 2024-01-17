@@ -3,6 +3,7 @@ package dodp
 import (
 	"bytes"
 	"compress/gzip"
+	"context"
 	"encoding/xml"
 	"io"
 	"net/http"
@@ -32,7 +33,7 @@ const (
 )
 
 type getServiceAnnouncements struct {
-	XMLName xml.Name `xml:"getServiceAnnouncements"`
+	XMLName xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ getServiceAnnouncements"`
 }
 
 type getServiceAnnouncementsResponse struct {
@@ -41,7 +42,7 @@ type getServiceAnnouncementsResponse struct {
 }
 
 type getQuestions struct {
-	XMLName       xml.Name       `xml:"getQuestions"`
+	XMLName       xml.Name       `xml:"http://www.daisy.org/ns/daisy-online/ getQuestions"`
 	UserResponses *UserResponses `xml:"userResponses"`
 }
 
@@ -51,7 +52,7 @@ type getQuestionsResponse struct {
 }
 
 type returnContent struct {
-	XMLName   xml.Name `xml:"returnContent"`
+	XMLName   xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ returnContent"`
 	ContentID string   `xml:"contentID"`
 }
 
@@ -61,7 +62,7 @@ type returnContentResponse struct {
 }
 
 type issueContent struct {
-	XMLName   xml.Name `xml:"issueContent"`
+	XMLName   xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ issueContent"`
 	ContentID string   `xml:"contentID"`
 }
 
@@ -71,7 +72,7 @@ type issueContentResponse struct {
 }
 
 type getContentResources struct {
-	XMLName   xml.Name `xml:"getContentResources"`
+	XMLName   xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ getContentResources"`
 	ContentID string   `xml:"contentID"`
 }
 
@@ -81,7 +82,7 @@ type getContentResourcesResponse struct {
 }
 
 type getContentMetadata struct {
-	XMLName   xml.Name `xml:"getContentMetadata"`
+	XMLName   xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ getContentMetadata"`
 	ContentID string   `xml:"contentID"`
 }
 
@@ -91,7 +92,7 @@ type getContentMetadataResponse struct {
 }
 
 type getContentList struct {
-	XMLName   xml.Name `xml:"getContentList"`
+	XMLName   xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ getContentList"`
 	ID        string   `xml:"id"`
 	FirstItem int      `xml:"firstItem"`
 	LastItem  int      `xml:"lastItem"`
@@ -103,7 +104,7 @@ type getContentListResponse struct {
 }
 
 type logOn struct {
-	XMLName  xml.Name `xml:"logOn"`
+	XMLName  xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ logOn"`
 	Username string   `xml:"username"`
 	Password string   `xml:"password"`
 }
@@ -114,7 +115,7 @@ type logOnResponse struct {
 }
 
 type getServiceAttributes struct {
-	XMLName xml.Name `xml:"getServiceAttributes"`
+	XMLName xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ getServiceAttributes"`
 }
 
 type getServiceAttributesResponse struct {
@@ -123,7 +124,7 @@ type getServiceAttributesResponse struct {
 }
 
 type setReadingSystemAttributes struct {
-	XMLName                 xml.Name                 `xml:"setReadingSystemAttributes"`
+	XMLName                 xml.Name                 `xml:"http://www.daisy.org/ns/daisy-online/ setReadingSystemAttributes"`
 	ReadingSystemAttributes *ReadingSystemAttributes `xml:"readingSystemAttributes"`
 }
 
@@ -133,7 +134,7 @@ type setReadingSystemAttributesResponse struct {
 }
 
 type logOff struct {
-	XMLName xml.Name `xml:"logOff"`
+	XMLName xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ logOff"`
 }
 
 type logOffResponse struct {
@@ -141,24 +142,33 @@ type logOffResponse struct {
 	LogOffResult bool     `xml:"logOffResult"`
 }
 
-type envelopeResponse struct {
-	XMLName xml.Name `xml:"Envelope"`
-	Body    struct {
-		XMLName xml.Name `xml:"Body"`
-		Content []byte   `xml:",innerxml"`
-	}
-}
-
 type envelope struct {
-	XMLName xml.Name `xml:"SOAP-ENV:Envelope"`
-	NS      string   `xml:"xmlns:SOAP-ENV,attr"`
+	XMLName xml.Name `xml:"http://schemas.xmlsoap.org/soap/envelope/ Envelope"`
 	Body    body
 }
 
 type body struct {
-	XMLName xml.Name `xml:"SOAP-ENV:Body"`
-	NS      string   `xml:"xmlns,attr"`
+	XMLName xml.Name `xml:"Body"`
 	Content any
+}
+
+func (b *body) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	for {
+		token, err := d.Token()
+		if err != nil {
+			if err == io.EOF {
+				return nil
+			}
+			return err
+		}
+		switch v := token.(type) {
+		case xml.StartElement:
+			if err := d.DecodeElement(b.Content, &v); err != nil {
+				return err
+			}
+			return d.Skip()
+		}
+	}
 }
 
 type Fault struct {
@@ -174,12 +184,17 @@ func (f *Fault) Error() string {
 type Client struct {
 	url        string
 	httpClient *http.Client
+	ctx        context.Context
 }
 
-// Creates an instance of a new DAISY Online client with the specified service URL.
+func NewClient(url string, timeout time.Duration) *Client {
+	return NewClientWithContext(context.TODO(), url, timeout)
+}
+
+// Creates an instance of a new DAISY Online client with context and the specified service URL.
 // Timeout limits the execution time of each HTTP request for this client.
 // Zero timeout means no timeout.
-func NewClient(url string, timeout time.Duration) *Client {
+func NewClientWithContext(ctx context.Context, url string, timeout time.Duration) *Client {
 	jar, err := cookiejar.New(nil)
 	if err != nil {
 		panic("Invalid cookie jar")
@@ -191,24 +206,24 @@ func NewClient(url string, timeout time.Duration) *Client {
 			Jar:     jar,
 			Timeout: timeout,
 		},
+		ctx: ctx,
 	}
 }
 
 func (c *Client) call(method string, args any, rs any) error {
-	env := envelope{
-		NS: "http://schemas.xmlsoap.org/soap/envelope/",
-		Body: body{
-			NS:      "http://www.daisy.org/ns/daisy-online/",
-			Content: args,
-		},
-	}
+	var reqEnv envelope
+	reqEnv.Body.Content = args
 
 	buf := bytes.NewBufferString(xml.Header)
-	if err := xml.NewEncoder(buf).Encode(env); err != nil {
+	enc := xml.NewEncoder(buf)
+	if err := enc.Encode(reqEnv); err != nil {
+		return err
+	}
+	if err := enc.Close(); err != nil {
 		return err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, c.url, buf)
+	req, err := http.NewRequestWithContext(c.ctx, http.MethodPost, c.url, buf)
 	if err != nil {
 		return err
 	}
@@ -234,19 +249,20 @@ func (c *Client) call(method string, args any, rs any) error {
 		defer gzipReader.Close()
 	}
 
-	var envresp envelopeResponse
-	if err := xml.NewDecoder(reader).Decode(&envresp); err != nil {
-		return err
-	}
+	var respEnv envelope
+	dec := xml.NewDecoder(reader)
 
 	if resp.StatusCode != http.StatusOK {
 		fault := &Fault{}
-		if err := xml.Unmarshal(envresp.Body.Content, fault); err != nil {
+		respEnv.Body.Content = fault
+		if err := dec.Decode(&respEnv); err != nil {
 			return err
 		}
 		return fault
 	}
-	return xml.Unmarshal(envresp.Body.Content, rs)
+
+	respEnv.Body.Content = rs
+	return dec.Decode(&respEnv)
 }
 
 // Logs a Reading System on to a Service.
