@@ -32,121 +32,13 @@ const (
 	Back    = "back"
 )
 
-type getServiceAnnouncements struct {
-	XMLName xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ getServiceAnnouncements"`
-}
-
-type getServiceAnnouncementsResponse struct {
-	XMLName       xml.Name      `xml:"getServiceAnnouncementsResponse"`
-	Announcements Announcements `xml:"announcements"`
-}
-
-type getQuestions struct {
-	XMLName       xml.Name       `xml:"http://www.daisy.org/ns/daisy-online/ getQuestions"`
-	UserResponses *UserResponses `xml:"userResponses"`
-}
-
-type getQuestionsResponse struct {
-	XMLName   xml.Name  `xml:"getQuestionsResponse"`
-	Questions Questions `xml:"questions"`
-}
-
-type returnContent struct {
-	XMLName   xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ returnContent"`
-	ContentID string   `xml:"contentID"`
-}
-
-type returnContentResponse struct {
-	XMLName             xml.Name `xml:"returnContentResponse"`
-	ReturnContentResult bool     `xml:"returnContentResult"`
-}
-
-type issueContent struct {
-	XMLName   xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ issueContent"`
-	ContentID string   `xml:"contentID"`
-}
-
-type issueContentResponse struct {
-	XMLName            xml.Name `xml:"issueContentResponse"`
-	IssueContentResult bool     `xml:"issueContentResult"`
-}
-
-type getContentResources struct {
-	XMLName   xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ getContentResources"`
-	ContentID string   `xml:"contentID"`
-}
-
-type getContentResourcesResponse struct {
-	XMLName   xml.Name  `xml:"getContentResourcesResponse"`
-	Resources Resources `xml:"resources"`
-}
-
-type getContentMetadata struct {
-	XMLName   xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ getContentMetadata"`
-	ContentID string   `xml:"contentID"`
-}
-
-type getContentMetadataResponse struct {
-	XMLName         xml.Name        `xml:"getContentMetadataResponse"`
-	ContentMetadata ContentMetadata `xml:"contentMetadata"`
-}
-
-type getContentList struct {
-	XMLName   xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ getContentList"`
-	ID        string   `xml:"id"`
-	FirstItem int      `xml:"firstItem"`
-	LastItem  int      `xml:"lastItem"`
-}
-
-type getContentListResponse struct {
-	XMLName     xml.Name    `xml:"getContentListResponse"`
-	ContentList ContentList `xml:"contentList"`
-}
-
-type logOn struct {
-	XMLName  xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ logOn"`
-	Username string   `xml:"username"`
-	Password string   `xml:"password"`
-}
-
-type logOnResponse struct {
-	XMLName     xml.Name `xml:"logOnResponse"`
-	LogOnResult bool     `xml:"logOnResult"`
-}
-
-type getServiceAttributes struct {
-	XMLName xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ getServiceAttributes"`
-}
-
-type getServiceAttributesResponse struct {
-	XMLName           xml.Name          `xml:"getServiceAttributesResponse"`
-	ServiceAttributes ServiceAttributes `xml:"serviceAttributes"`
-}
-
-type setReadingSystemAttributes struct {
-	XMLName                 xml.Name                 `xml:"http://www.daisy.org/ns/daisy-online/ setReadingSystemAttributes"`
-	ReadingSystemAttributes *ReadingSystemAttributes `xml:"readingSystemAttributes"`
-}
-
-type setReadingSystemAttributesResponse struct {
-	XMLName                          xml.Name `xml:"setReadingSystemAttributesResponse"`
-	SetReadingSystemAttributesResult bool     `xml:"setReadingSystemAttributesResult"`
-}
-
-type logOff struct {
-	XMLName xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ logOff"`
-}
-
-type logOffResponse struct {
-	XMLName      xml.Name `xml:"logOffResponse"`
-	LogOffResult bool     `xml:"logOffResult"`
-}
-
+// SOAP message envelope
 type envelope struct {
 	XMLName xml.Name `xml:"http://schemas.xmlsoap.org/soap/envelope/ Envelope"`
 	Body    body
 }
 
+// SOAP message body
 type body struct {
 	XMLName xml.Name `xml:"Body"`
 	Content any
@@ -162,6 +54,7 @@ func (b *body) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 			return err
 		}
 		switch v := token.(type) {
+		// We unmarshal only the first element inside the body as content. All other elements, if present, are ignored
 		case xml.StartElement:
 			if err := d.DecodeElement(b.Content, &v); err != nil {
 				return err
@@ -171,6 +64,7 @@ func (b *body) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	}
 }
 
+// SOAP fault
 type Fault struct {
 	XMLName     xml.Name `xml:"Fault"`
 	Faultstring string   `xml:"faultstring"`
@@ -265,6 +159,17 @@ func (c *Client) call(method string, args any, rs any) error {
 	return dec.Decode(&respEnv)
 }
 
+type logOn struct {
+	XMLName  xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ logOn"`
+	Username string   `xml:"username"`
+	Password string   `xml:"password"`
+}
+
+type logOnResponse struct {
+	XMLName     xml.Name `xml:"logOnResponse"`
+	LogOnResult bool     `xml:"logOnResult"`
+}
+
 // Logs a Reading System on to a Service.
 func (c *Client) LogOn(username, password string) (bool, error) {
 	req := logOn{
@@ -279,6 +184,15 @@ func (c *Client) LogOn(username, password string) (bool, error) {
 	return resp.LogOnResult, nil
 }
 
+type logOff struct {
+	XMLName xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ logOff"`
+}
+
+type logOffResponse struct {
+	XMLName      xml.Name `xml:"logOffResponse"`
+	LogOffResult bool     `xml:"logOffResult"`
+}
+
 // Logs a Reading System off a Service.
 // A return value of false or a Fault both indicate that the operation was not successful.
 func (c *Client) LogOff() (bool, error) {
@@ -289,6 +203,15 @@ func (c *Client) LogOff() (bool, error) {
 	}
 	c.httpClient.CloseIdleConnections()
 	return resp.LogOffResult, nil
+}
+
+type getServiceAttributes struct {
+	XMLName xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ getServiceAttributes"`
+}
+
+type getServiceAttributesResponse struct {
+	XMLName           xml.Name          `xml:"getServiceAttributesResponse"`
+	ServiceAttributes ServiceAttributes `xml:"serviceAttributes"`
 }
 
 // Retrieves Service properties, including information on which optional Operations the Service supports.
@@ -302,8 +225,18 @@ func (c *Client) GetServiceAttributes() (*ServiceAttributes, error) {
 	return &resp.ServiceAttributes, nil
 }
 
+type setReadingSystemAttributes struct {
+	XMLName                 xml.Name                 `xml:"http://www.daisy.org/ns/daisy-online/ setReadingSystemAttributes"`
+	ReadingSystemAttributes *ReadingSystemAttributes `xml:"readingSystemAttributes"`
+}
+
+type setReadingSystemAttributesResponse struct {
+	XMLName                          xml.Name `xml:"setReadingSystemAttributesResponse"`
+	SetReadingSystemAttributesResult bool     `xml:"setReadingSystemAttributesResult"`
+}
+
 // Sends Reading System properties to a Service.
-// A Reading System must call this operation as part of the Session Initialization Sequence. The operation may be called additional times during a Session to record dynamic changes in a Reading System’s properties.
+// A Reading System must call this operation as part of the Session Initialization Sequence. The operation may be called additional times during a Session to record dynamic changes in a Reading System's properties.
 func (c *Client) SetReadingSystemAttributes(readingSystemAttributes *ReadingSystemAttributes) (bool, error) {
 	req := setReadingSystemAttributes{ReadingSystemAttributes: readingSystemAttributes}
 	resp := setReadingSystemAttributesResponse{}
@@ -311,6 +244,18 @@ func (c *Client) SetReadingSystemAttributes(readingSystemAttributes *ReadingSyst
 		return false, err
 	}
 	return resp.SetReadingSystemAttributesResult, nil
+}
+
+type getContentList struct {
+	XMLName   xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ getContentList"`
+	ID        string   `xml:"id"`
+	FirstItem int      `xml:"firstItem"`
+	LastItem  int      `xml:"lastItem"`
+}
+
+type getContentListResponse struct {
+	XMLName     xml.Name    `xml:"getContentListResponse"`
+	ContentList ContentList `xml:"contentList"`
 }
 
 // Retrieves a list of Content items.
@@ -330,6 +275,16 @@ func (c *Client) GetContentList(id string, firstItem int, lastItem int) (*Conten
 	return &resp.ContentList, nil
 }
 
+type getContentMetadata struct {
+	XMLName   xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ getContentMetadata"`
+	ContentID string   `xml:"contentID"`
+}
+
+type getContentMetadataResponse struct {
+	XMLName         xml.Name        `xml:"getContentMetadataResponse"`
+	ContentMetadata ContentMetadata `xml:"contentMetadata"`
+}
+
 // Retrieves the contentMetadata of the specified Content item.
 // This operation must be called as part of the Content Retrieval Sequence.
 func (c *Client) GetContentMetadata(contentID string) (*ContentMetadata, error) {
@@ -339,6 +294,16 @@ func (c *Client) GetContentMetadata(contentID string) (*ContentMetadata, error) 
 		return nil, err
 	}
 	return &resp.ContentMetadata, nil
+}
+
+type getContentResources struct {
+	XMLName   xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ getContentResources"`
+	ContentID string   `xml:"contentID"`
+}
+
+type getContentResourcesResponse struct {
+	XMLName   xml.Name  `xml:"getContentResourcesResponse"`
+	Resources Resources `xml:"resources"`
 }
 
 // Retrieves the resources list for the specified Content item.
@@ -352,6 +317,16 @@ func (c *Client) GetContentResources(contentID string) (*Resources, error) {
 	return &resp.Resources, nil
 }
 
+type issueContent struct {
+	XMLName   xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ issueContent"`
+	ContentID string   `xml:"contentID"`
+}
+
+type issueContentResponse struct {
+	XMLName            xml.Name `xml:"issueContentResponse"`
+	IssueContentResult bool     `xml:"issueContentResult"`
+}
+
 // Requests a Service to issue the specified Content item.
 func (c *Client) IssueContent(contentID string) (bool, error) {
 	req := issueContent{ContentID: contentID}
@@ -360,6 +335,16 @@ func (c *Client) IssueContent(contentID string) (bool, error) {
 		return false, err
 	}
 	return resp.IssueContentResult, nil
+}
+
+type returnContent struct {
+	XMLName   xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ returnContent"`
+	ContentID string   `xml:"contentID"`
+}
+
+type returnContentResponse struct {
+	XMLName             xml.Name `xml:"returnContentResponse"`
+	ReturnContentResult bool     `xml:"returnContentResult"`
 }
 
 // Notifies the Service that the specified Content item has been deleted from the Reading System.
@@ -375,6 +360,16 @@ func (c *Client) ReturnContent(contentID string) (bool, error) {
 	return resp.ReturnContentResult, nil
 }
 
+type getQuestions struct {
+	XMLName       xml.Name       `xml:"http://www.daisy.org/ns/daisy-online/ getQuestions"`
+	UserResponses *UserResponses `xml:"userResponses"`
+}
+
+type getQuestionsResponse struct {
+	XMLName   xml.Name  `xml:"getQuestionsResponse"`
+	Questions Questions `xml:"questions"`
+}
+
 // Retrieves a question from the series of questions that comprise the dynamic menu system.
 func (c *Client) GetQuestions(userResponses *UserResponses) (*Questions, error) {
 	req := getQuestions{UserResponses: userResponses}
@@ -385,6 +380,15 @@ func (c *Client) GetQuestions(userResponses *UserResponses) (*Questions, error) 
 	return &resp.Questions, nil
 }
 
+type getServiceAnnouncements struct {
+	XMLName xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ getServiceAnnouncements"`
+}
+
+type getServiceAnnouncementsResponse struct {
+	XMLName       xml.Name      `xml:"getServiceAnnouncementsResponse"`
+	Announcements Announcements `xml:"announcements"`
+}
+
 // Retrieves any announcements from the Service that a User has not yet read.
 func (c *Client) GetServiceAnnouncements() (*Announcements, error) {
 	req := getServiceAnnouncements{}
@@ -393,4 +397,49 @@ func (c *Client) GetServiceAnnouncements() (*Announcements, error) {
 		return nil, err
 	}
 	return &resp.Announcements, nil
+}
+
+type setBookmarks struct {
+	XMLName     xml.Name     `xml:"http://www.daisy.org/ns/daisy-online/ setBookmarks"`
+	ContentID   string       `xml:"contentID"`
+	BookmarkSet *BookmarkSet `xml:"bookmarkSet"`
+}
+
+type setBookmarksResponse struct {
+	XMLName            xml.Name `xml:"setBookmarksResponse"`
+	SetBookmarksResult bool     `xml:"setBookmarksResult"`
+}
+
+// Requests that a Service store the supplied bookmarks for a Content item.
+// This operation only supports the storage of bookmarks for one Content item at a time.
+func (c *Client) SetBookmarks(contentID string, bookmarkSet *BookmarkSet) (bool, error) {
+	req := setBookmarks{
+		ContentID:   contentID,
+		BookmarkSet: bookmarkSet,
+	}
+	resp := setBookmarksResponse{}
+	if err := c.call("setBookmarks", req, &resp); err != nil {
+		return false, err
+	}
+	return resp.SetBookmarksResult, nil
+}
+
+type getBookmarks struct {
+	XMLName   xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ getBookmarks"`
+	ContentID string   `xml:"contentID"`
+}
+
+type getBookmarksResponse struct {
+	XMLName     xml.Name    `xml:"getBookmarksResponse"`
+	BookmarkSet BookmarkSet `xml:"bookmarkSet"`
+}
+
+// Retrieves the bookmarks for a Content item from a Service.
+func (c *Client) GetBookmarks(contentID string) (*BookmarkSet, error) {
+	req := getBookmarks{ContentID: contentID}
+	resp := getBookmarksResponse{}
+	if err := c.call("getBookmarks", req, &resp); err != nil {
+		return nil, err
+	}
+	return &resp.BookmarkSet, nil
 }
