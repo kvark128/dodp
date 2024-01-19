@@ -1,3 +1,4 @@
+// Package dodp implements DAISY Online Delivery Protocol v1.
 package dodp
 
 import (
@@ -176,7 +177,6 @@ func (c *Client) LogOn(username, password string) (bool, error) {
 		Username: username,
 		Password: password,
 	}
-
 	resp := logOnResponse{}
 	if err := c.call("logOn", req, &resp); err != nil {
 		return false, err
@@ -267,7 +267,6 @@ func (c *Client) GetContentList(id string, firstItem int32, lastItem int32) (*Co
 		FirstItem: firstItem,
 		LastItem:  lastItem,
 	}
-
 	resp := getContentListResponse{}
 	if err := c.call("getContentList", req, &resp); err != nil {
 		return nil, err
