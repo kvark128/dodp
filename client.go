@@ -443,3 +443,24 @@ func (c *Client) GetBookmarks(contentID string) (*BookmarkSet, error) {
 	}
 	return &resp.BookmarkSet, nil
 }
+
+type markAnnouncementsAsRead struct {
+	XMLName xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ markAnnouncementsAsRead"`
+	Read    *Read    `xml:"read"`
+}
+
+type markAnnouncementsAsReadResponse struct {
+	XMLName                       xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ markAnnouncementsAsReadResponse"`
+	MarkAnnouncementsAsReadResult bool     `xml:"markAnnouncementsAsReadResult"`
+}
+
+// Marks the specified announcement(s) as read.
+// This operation is only valid if a previous call to  getServiceAnnouncements  has been made during the Session.
+func (c *Client) MarkAnnouncementsAsRead(read *Read) (bool, error) {
+	req := markAnnouncementsAsRead{Read: read}
+	resp := markAnnouncementsAsReadResponse{}
+	if err := c.call("markAnnouncementsAsRead", req, &resp); err != nil {
+		return false, err
+	}
+	return resp.MarkAnnouncementsAsReadResult, nil
+}

@@ -261,3 +261,8 @@ type Announcement struct {
 	Priority int32    `xml:"priority,attr"`
 	Label    Label
 }
+
+type Read struct {
+	XMLName xml.Name `xml:"read"`
+	Item    []string `xml:"item"`
+}
