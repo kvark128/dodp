@@ -249,8 +249,8 @@ func (c *Client) SetReadingSystemAttributes(readingSystemAttributes *ReadingSyst
 type getContentList struct {
 	XMLName   xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ getContentList"`
 	ID        string   `xml:"id"`
-	FirstItem int      `xml:"firstItem"`
-	LastItem  int      `xml:"lastItem"`
+	FirstItem int32    `xml:"firstItem"`
+	LastItem  int32    `xml:"lastItem"`
 }
 
 type getContentListResponse struct {
@@ -261,7 +261,7 @@ type getContentListResponse struct {
 // Retrieves a list of Content items.
 // The list returned by the Service can be pre-composed, in which case it is retrieved by passing one of the three reserved values defined in the id parameter below. (Refer to 4, Protocol Fundamentals for information on the contexts in which these reserved values are used.)
 // The list can also be dynamic (e.g., the result of a dynamic menu search operation sequence). In this case, the id value used to refer to the list is provided in the return value of a previous call to getQuestions. (Refer to the questions type for more information.)
-func (c *Client) GetContentList(id string, firstItem int, lastItem int) (*ContentList, error) {
+func (c *Client) GetContentList(id string, firstItem int32, lastItem int32) (*ContentList, error) {
 	req := getContentList{
 		ID:        id,
 		FirstItem: firstItem,

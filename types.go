@@ -63,8 +63,8 @@ type Label struct {
 type Audio struct {
 	XMLName    xml.Name `xml:"audio"`
 	URI        string   `xml:"uri,attr"`
-	RangeBegin int      `xml:"rangeBegin,attr"`
-	RangeEnd   int      `xml:"rangeEnd,attr"`
+	RangeBegin int64    `xml:"rangeBegin,attr"`
+	RangeEnd   int64    `xml:"rangeEnd,attr"`
 	Size       int64    `xml:"size,attr"`
 }
 
@@ -123,9 +123,9 @@ type Input struct {
 
 type ContentList struct {
 	XMLName      xml.Name `xml:"contentList"`
-	TotalItems   int      `xml:"totalItems,attr"`
-	FirstItem    int      `xml:"firstItem,attr"`
-	LastItem     int      `xml:"lastItem,attr"`
+	TotalItems   int32    `xml:"totalItems,attr"`
+	FirstItem    int32    `xml:"firstItem,attr"`
+	LastItem     int32    `xml:"lastItem,attr"`
 	ID           string   `xml:"id,attr"`
 	Label        Label
 	ContentItems []ContentItem `xml:"contentItem"`
@@ -258,6 +258,6 @@ type Announcement struct {
 	XMLName  xml.Name `xml:"announcement"`
 	ID       string   `xml:"id,attr"`
 	Type     string   `xml:"type,attr"`
-	Priority int      `xml:"priority,attr"`
+	Priority int32    `xml:"priority,attr"`
 	Label    Label
 }
