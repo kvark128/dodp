@@ -166,7 +166,7 @@ type logOn struct {
 }
 
 type logOnResponse struct {
-	XMLName     xml.Name `xml:"logOnResponse"`
+	XMLName     xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ logOnResponse"`
 	LogOnResult bool     `xml:"logOnResult"`
 }
 
@@ -189,7 +189,7 @@ type logOff struct {
 }
 
 type logOffResponse struct {
-	XMLName      xml.Name `xml:"logOffResponse"`
+	XMLName      xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ logOffResponse"`
 	LogOffResult bool     `xml:"logOffResult"`
 }
 
@@ -210,7 +210,7 @@ type getServiceAttributes struct {
 }
 
 type getServiceAttributesResponse struct {
-	XMLName           xml.Name          `xml:"getServiceAttributesResponse"`
+	XMLName           xml.Name          `xml:"http://www.daisy.org/ns/daisy-online/ getServiceAttributesResponse"`
 	ServiceAttributes ServiceAttributes `xml:"serviceAttributes"`
 }
 
@@ -231,7 +231,7 @@ type setReadingSystemAttributes struct {
 }
 
 type setReadingSystemAttributesResponse struct {
-	XMLName                          xml.Name `xml:"setReadingSystemAttributesResponse"`
+	XMLName                          xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ setReadingSystemAttributesResponse"`
 	SetReadingSystemAttributesResult bool     `xml:"setReadingSystemAttributesResult"`
 }
 
@@ -254,7 +254,7 @@ type getContentList struct {
 }
 
 type getContentListResponse struct {
-	XMLName     xml.Name    `xml:"getContentListResponse"`
+	XMLName     xml.Name    `xml:"http://www.daisy.org/ns/daisy-online/ getContentListResponse"`
 	ContentList ContentList `xml:"contentList"`
 }
 
@@ -281,7 +281,7 @@ type getContentMetadata struct {
 }
 
 type getContentMetadataResponse struct {
-	XMLName         xml.Name        `xml:"getContentMetadataResponse"`
+	XMLName         xml.Name        `xml:"http://www.daisy.org/ns/daisy-online/ getContentMetadataResponse"`
 	ContentMetadata ContentMetadata `xml:"contentMetadata"`
 }
 
@@ -302,7 +302,7 @@ type getContentResources struct {
 }
 
 type getContentResourcesResponse struct {
-	XMLName   xml.Name  `xml:"getContentResourcesResponse"`
+	XMLName   xml.Name  `xml:"http://www.daisy.org/ns/daisy-online/ getContentResourcesResponse"`
 	Resources Resources `xml:"resources"`
 }
 
@@ -323,7 +323,7 @@ type issueContent struct {
 }
 
 type issueContentResponse struct {
-	XMLName            xml.Name `xml:"issueContentResponse"`
+	XMLName            xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ issueContentResponse"`
 	IssueContentResult bool     `xml:"issueContentResult"`
 }
 
@@ -343,7 +343,7 @@ type returnContent struct {
 }
 
 type returnContentResponse struct {
-	XMLName             xml.Name `xml:"returnContentResponse"`
+	XMLName             xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ returnContentResponse"`
 	ReturnContentResult bool     `xml:"returnContentResult"`
 }
 
@@ -366,7 +366,7 @@ type getQuestions struct {
 }
 
 type getQuestionsResponse struct {
-	XMLName   xml.Name  `xml:"getQuestionsResponse"`
+	XMLName   xml.Name  `xml:"http://www.daisy.org/ns/daisy-online/ getQuestionsResponse"`
 	Questions Questions `xml:"questions"`
 }
 
@@ -385,7 +385,7 @@ type getServiceAnnouncements struct {
 }
 
 type getServiceAnnouncementsResponse struct {
-	XMLName       xml.Name      `xml:"getServiceAnnouncementsResponse"`
+	XMLName       xml.Name      `xml:"http://www.daisy.org/ns/daisy-online/ getServiceAnnouncementsResponse"`
 	Announcements Announcements `xml:"announcements"`
 }
 
@@ -406,7 +406,7 @@ type setBookmarks struct {
 }
 
 type setBookmarksResponse struct {
-	XMLName            xml.Name `xml:"setBookmarksResponse"`
+	XMLName            xml.Name `xml:"http://www.daisy.org/ns/daisy-online/ setBookmarksResponse"`
 	SetBookmarksResult bool     `xml:"setBookmarksResult"`
 }
 
@@ -430,7 +430,7 @@ type getBookmarks struct {
 }
 
 type getBookmarksResponse struct {
-	XMLName     xml.Name    `xml:"getBookmarksResponse"`
+	XMLName     xml.Name    `xml:"http://www.daisy.org/ns/daisy-online/ getBookmarksResponse"`
 	BookmarkSet BookmarkSet `xml:"bookmarkSet"`
 }
 
