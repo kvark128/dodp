@@ -6,6 +6,7 @@ import (
 	"compress/gzip"
 	"context"
 	"encoding/xml"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/cookiejar"
@@ -105,7 +106,7 @@ func NewClientWithContext(ctx context.Context, url string, timeout time.Duration
 	}
 }
 
-func (c *Client) call(method string, args any, rs any) error {
+func (c *Client) call(action string, args any, rs any) error {
 	var reqEnv envelope
 	reqEnv.Body.Content = args
 
@@ -126,7 +127,7 @@ func (c *Client) call(method string, args any, rs any) error {
 	req.Header.Add("Content-Type", "text/xml; charset=utf-8")
 	req.Header.Add("Accept", "text/xml")
 	req.Header.Add("Accept-Encoding", "gzip")
-	req.Header.Add("SOAPAction", "/"+method)
+	req.Header.Add("SOAPAction", "/"+action)
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -153,7 +154,7 @@ func (c *Client) call(method string, args any, rs any) error {
 		if err := dec.Decode(&respEnv); err != nil {
 			return err
 		}
-		return fault
+		return fmt.Errorf("fault: %w", fault)
 	}
 
 	respEnv.Body.Content = rs
@@ -173,13 +174,14 @@ type logOnResponse struct {
 
 // Logs a Reading System on to a Service.
 func (c *Client) LogOn(username, password string) (bool, error) {
+	action := "logOn"
 	req := logOn{
 		Username: username,
 		Password: password,
 	}
 	resp := logOnResponse{}
-	if err := c.call("logOn", req, &resp); err != nil {
-		return false, err
+	if err := c.call(action, req, &resp); err != nil {
+		return false, fmt.Errorf("%v operation: %w", action, err)
 	}
 	return resp.LogOnResult, nil
 }
@@ -196,10 +198,11 @@ type logOffResponse struct {
 // Logs a Reading System off a Service.
 // A return value of false or a Fault both indicate that the operation was not successful.
 func (c *Client) LogOff() (bool, error) {
+	action := "logOff"
 	req := logOff{}
 	resp := logOffResponse{}
-	if err := c.call("logOff", req, &resp); err != nil {
-		return false, err
+	if err := c.call(action, req, &resp); err != nil {
+		return false, fmt.Errorf("%v operation: %w", action, err)
 	}
 	c.httpClient.CloseIdleConnections()
 	return resp.LogOffResult, nil
@@ -217,10 +220,11 @@ type getServiceAttributesResponse struct {
 // Retrieves Service properties, including information on which optional Operations the Service supports.
 // A Reading System must call this operation as part of the Session Initialization Sequence and may call the operation to retrieve information on possible changes to Service properties at any other time during a Session.
 func (c *Client) GetServiceAttributes() (*ServiceAttributes, error) {
+	action := "getServiceAttributes"
 	req := getServiceAttributes{}
 	resp := getServiceAttributesResponse{}
-	if err := c.call("getServiceAttributes", req, &resp); err != nil {
-		return nil, err
+	if err := c.call(action, req, &resp); err != nil {
+		return nil, fmt.Errorf("%v operation: %w", action, err)
 	}
 	return &resp.ServiceAttributes, nil
 }
@@ -238,10 +242,11 @@ type setReadingSystemAttributesResponse struct {
 // Sends Reading System properties to a Service.
 // A Reading System must call this operation as part of the Session Initialization Sequence. The operation may be called additional times during a Session to record dynamic changes in a Reading System's properties.
 func (c *Client) SetReadingSystemAttributes(readingSystemAttributes *ReadingSystemAttributes) (bool, error) {
+	action := "setReadingSystemAttributes"
 	req := setReadingSystemAttributes{ReadingSystemAttributes: readingSystemAttributes}
 	resp := setReadingSystemAttributesResponse{}
-	if err := c.call("setReadingSystemAttributes", req, &resp); err != nil {
-		return false, err
+	if err := c.call(action, req, &resp); err != nil {
+		return false, fmt.Errorf("%v operation: %w", action, err)
 	}
 	return resp.SetReadingSystemAttributesResult, nil
 }
@@ -262,14 +267,15 @@ type getContentListResponse struct {
 // The list returned by the Service can be pre-composed, in which case it is retrieved by passing one of the three reserved values defined in the id parameter below. (Refer to 4, Protocol Fundamentals for information on the contexts in which these reserved values are used.)
 // The list can also be dynamic (e.g., the result of a dynamic menu search operation sequence). In this case, the id value used to refer to the list is provided in the return value of a previous call to getQuestions. (Refer to the questions type for more information.)
 func (c *Client) GetContentList(id string, firstItem int32, lastItem int32) (*ContentList, error) {
+	action := "getContentList"
 	req := getContentList{
 		ID:        id,
 		FirstItem: firstItem,
 		LastItem:  lastItem,
 	}
 	resp := getContentListResponse{}
-	if err := c.call("getContentList", req, &resp); err != nil {
-		return nil, err
+	if err := c.call(action, req, &resp); err != nil {
+		return nil, fmt.Errorf("%v operation: %w", action, err)
 	}
 	return &resp.ContentList, nil
 }
@@ -287,10 +293,11 @@ type getContentMetadataResponse struct {
 // Retrieves the contentMetadata of the specified Content item.
 // This operation must be called as part of the Content Retrieval Sequence.
 func (c *Client) GetContentMetadata(contentID string) (*ContentMetadata, error) {
+	action := "getContentMetadata"
 	req := getContentMetadata{ContentID: contentID}
 	resp := getContentMetadataResponse{}
-	if err := c.call("getContentMetadata", req, &resp); err != nil {
-		return nil, err
+	if err := c.call(action, req, &resp); err != nil {
+		return nil, fmt.Errorf("%v operation: %w", action, err)
 	}
 	return &resp.ContentMetadata, nil
 }
@@ -308,10 +315,11 @@ type getContentResourcesResponse struct {
 // Retrieves the resources list for the specified Content item.
 // The Content item must be issued before this operation is called. If not, the Service shall respond with an invalidParameter Fault.
 func (c *Client) GetContentResources(contentID string) (*Resources, error) {
+	action := "getContentResources"
 	req := getContentResources{ContentID: contentID}
 	resp := getContentResourcesResponse{}
-	if err := c.call("getContentResources", req, &resp); err != nil {
-		return nil, err
+	if err := c.call(action, req, &resp); err != nil {
+		return nil, fmt.Errorf("%v operation: %w", action, err)
 	}
 	return &resp.Resources, nil
 }
@@ -328,10 +336,11 @@ type issueContentResponse struct {
 
 // Requests a Service to issue the specified Content item.
 func (c *Client) IssueContent(contentID string) (bool, error) {
+	action := "issueContent"
 	req := issueContent{ContentID: contentID}
 	resp := issueContentResponse{}
-	if err := c.call("issueContent", req, &resp); err != nil {
-		return false, err
+	if err := c.call(action, req, &resp); err != nil {
+		return false, fmt.Errorf("%v operation: %w", action, err)
 	}
 	return resp.IssueContentResult, nil
 }
@@ -351,10 +360,11 @@ type returnContentResponse struct {
 // A Reading System must not call this function for a Content item that has a requiresReturn attribute with a value of false.
 // A Reading System must delete the Content item before calling returnContent. A Reading System must not call returnContent for a Content item that was not issued to the User on that Reading System.
 func (c *Client) ReturnContent(contentID string) (bool, error) {
+	action := "returnContent"
 	req := returnContent{ContentID: contentID}
 	resp := returnContentResponse{}
-	if err := c.call("returnContent", req, &resp); err != nil {
-		return false, err
+	if err := c.call(action, req, &resp); err != nil {
+		return false, fmt.Errorf("%v operation: %w", action, err)
 	}
 	return resp.ReturnContentResult, nil
 }
@@ -371,10 +381,11 @@ type getQuestionsResponse struct {
 
 // Retrieves a question from the series of questions that comprise the dynamic menu system.
 func (c *Client) GetQuestions(userResponses *UserResponses) (*Questions, error) {
+	action := "getQuestions"
 	req := getQuestions{UserResponses: userResponses}
 	resp := getQuestionsResponse{}
-	if err := c.call("getQuestions", req, &resp); err != nil {
-		return nil, err
+	if err := c.call(action, req, &resp); err != nil {
+		return nil, fmt.Errorf("%v operation: %w", action, err)
 	}
 	return &resp.Questions, nil
 }
@@ -390,10 +401,11 @@ type getServiceAnnouncementsResponse struct {
 
 // Retrieves any announcements from the Service that a User has not yet read.
 func (c *Client) GetServiceAnnouncements() (*Announcements, error) {
+	action := "getServiceAnnouncements"
 	req := getServiceAnnouncements{}
 	resp := getServiceAnnouncementsResponse{}
-	if err := c.call("getServiceAnnouncements", req, &resp); err != nil {
-		return nil, err
+	if err := c.call(action, req, &resp); err != nil {
+		return nil, fmt.Errorf("%v operation: %w", action, err)
 	}
 	return &resp.Announcements, nil
 }
@@ -412,13 +424,14 @@ type setBookmarksResponse struct {
 // Requests that a Service store the supplied bookmarks for a Content item.
 // This operation only supports the storage of bookmarks for one Content item at a time.
 func (c *Client) SetBookmarks(contentID string, bookmarkSet *BookmarkSet) (bool, error) {
+	action := "setBookmarks"
 	req := setBookmarks{
 		ContentID:   contentID,
 		BookmarkSet: bookmarkSet,
 	}
 	resp := setBookmarksResponse{}
-	if err := c.call("setBookmarks", req, &resp); err != nil {
-		return false, err
+	if err := c.call(action, req, &resp); err != nil {
+		return false, fmt.Errorf("%v operation: %w", action, err)
 	}
 	return resp.SetBookmarksResult, nil
 }
@@ -435,10 +448,11 @@ type getBookmarksResponse struct {
 
 // Retrieves the bookmarks for a Content item from a Service.
 func (c *Client) GetBookmarks(contentID string) (*BookmarkSet, error) {
+	action := "getBookmarks"
 	req := getBookmarks{ContentID: contentID}
 	resp := getBookmarksResponse{}
-	if err := c.call("getBookmarks", req, &resp); err != nil {
-		return nil, err
+	if err := c.call(action, req, &resp); err != nil {
+		return nil, fmt.Errorf("%v operation: %w", action, err)
 	}
 	return &resp.BookmarkSet, nil
 }
@@ -456,10 +470,11 @@ type markAnnouncementsAsReadResponse struct {
 // Marks the specified announcement(s) as read.
 // This operation is only valid if a previous call to  getServiceAnnouncements  has been made during the Session.
 func (c *Client) MarkAnnouncementsAsRead(read *Read) (bool, error) {
+	action := "markAnnouncementsAsRead"
 	req := markAnnouncementsAsRead{Read: read}
 	resp := markAnnouncementsAsReadResponse{}
-	if err := c.call("markAnnouncementsAsRead", req, &resp); err != nil {
-		return false, err
+	if err := c.call(action, req, &resp); err != nil {
+		return false, fmt.Errorf("%v operation: %w", action, err)
 	}
 	return resp.MarkAnnouncementsAsReadResult, nil
 }
