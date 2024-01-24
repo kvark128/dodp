@@ -3,7 +3,6 @@ package dodp
 
 import (
 	"bytes"
-	"compress/gzip"
 	"context"
 	"encoding/xml"
 	"fmt"
@@ -124,10 +123,9 @@ func (c *Client) call(action string, args any, rs any) error {
 		return err
 	}
 
-	req.Header.Add("Content-Type", "text/xml; charset=utf-8")
-	req.Header.Add("Accept", "text/xml")
-	req.Header.Add("Accept-Encoding", "gzip")
-	req.Header.Add("SOAPAction", "/"+action)
+	req.Header.Set("Content-Type", "text/xml; charset=utf-8")
+	req.Header.Set("Accept", "text/xml")
+	req.Header.Set("SOAPAction", "/"+action)
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
@@ -135,18 +133,8 @@ func (c *Client) call(action string, args any, rs any) error {
 	}
 	defer resp.Body.Close()
 
-	var reader io.Reader = resp.Body
-	if resp.Header.Get("Content-Encoding") == "gzip" {
-		gzipReader, err := gzip.NewReader(resp.Body)
-		if err != nil {
-			return err
-		}
-		reader = gzipReader
-		defer gzipReader.Close()
-	}
-
 	var respEnv envelope
-	dec := xml.NewDecoder(reader)
+	dec := xml.NewDecoder(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
 		fault := &Fault{}
